@@ -74,9 +74,9 @@ async function loadData() {
       supabase.from('wealth_levels').select('*').order('level'),
     ])
 
-    if (profileRes.error) console.error('Profil hatası:', profileRes.error)
-    if (levelRes.error) console.error('Level hatası:', levelRes.error)
-    if (allLevelsRes.error) console.error('AllLevels hatası:', allLevelsRes.error)
+    if (profileRes.error) console.error('Profil hatası:', JSON.stringify(profileRes.error))
+    if (levelRes.error) console.error('Level hatası:', JSON.stringify(levelRes.error))
+    if (allLevelsRes.error) console.error('AllLevels hatası:', JSON.stringify(allLevelsRes.error))
 
     if (profileRes.data) userProfile.value = profileRes.data
     if (levelRes.data) levelInfo.value = levelRes.data
