@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, nextTick, watch } from 'vue'
 import { supabase } from './lib/supabase.js'
 
 // State
@@ -8,6 +8,7 @@ const userProfile = ref(null)
 const levelInfo = ref(null)
 const allLevels = ref([])
 const error = ref(null)
+const timelineItemRefs = ref([])
 
 // URL'den user_id al
 const userId = new URLSearchParams(window.location.search).get('user_id')
@@ -22,11 +23,22 @@ const progressPercent = computed(() => {
   return Math.min(((current - currentLvlExp) / (nextLvlExp - currentLvlExp)) * 100, 100)
 })
 
-// Level grupları (iptal edildi, artık tüm level data direkt basılıyor)
 const activeLevelIndex = computed(() => {
   const lvl = levelInfo.value?.level || 1
   return allLevels.value.findIndex(l => l.level === lvl)
 })
+
+// Auto-scroll watch
+watch([activeLevelIndex, timelineItemRefs], async () => {
+  await nextTick()
+  if (activeLevelIndex.value >= 0 && timelineItemRefs.value[activeLevelIndex.value]) {
+    timelineItemRefs.value[activeLevelIndex.value].scrollIntoView({
+      behavior: 'smooth',
+      inline: 'center',
+      block: 'nearest'
+    })
+  }
+}, { immediate: true, deep: true })
 
 // Veri çek
 async function loadData() {
@@ -148,6 +160,7 @@ onMounted(loadData)
             :key="lvlItem.level"
             class="timeline-item"
             :class="{ active: idx === activeLevelIndex, past: idx < activeLevelIndex }"
+            ref="timelineItemRefs"
           >
             <div class="level-icon-wrapper">
               <img v-if="lvlItem.icon_url" :src="lvlItem.icon_url" class="range-icon-large" @error="(e) => e.target.style.display='none'" />
@@ -290,10 +303,11 @@ body {
 .timeline-section {
   background: #fff;
   padding: 16px 0;
+  overflow: hidden;
 }
 .timeline-scroll {
   display: flex; overflow-x: auto;
-  gap: 12px; padding: 0 16px;
+  gap: 12px; padding: 20px 16px; align-items: flex-end;
   -ms-overflow-style: none; scrollbar-width: none;
 }
 .timeline-scroll::-webkit-scrollbar { display: none; }
@@ -302,12 +316,12 @@ body {
   display: flex; flex-direction: column;
   align-items: center; justify-content: flex-end;
   opacity: 0.35;
-  transform: scale(0.85);
+  transform: scale(0.85); transform-origin: center bottom;
   transition: all 0.3s ease;
   min-width: 48px;
 }
 .timeline-item.past { opacity: 0.55; transform: scale(0.9); }
-.timeline-item.active { opacity: 1; transform: scale(1.1); }
+.timeline-item.active { opacity: 1; transform: scale(1.15); }
 .level-icon-wrapper {
   display: flex; align-items: center; justify-content: center;
   height: 54px;
@@ -378,14 +392,17 @@ body {
   display: flex; align-items: center;
 }
 .stat-box {
-  flex: 1; padding: 16px 0;
+  flex: 1; padding: 16px 4px;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
+  overflow: hidden;
 }
 .stat-value {
-  font-size: 18px; font-weight: 800; color: #1A1A2E;
+  font-size: 16px; font-weight: 800; color: #1A1A2E; /* reduced from 18 */
+  width: 100%; text-align: center;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.stat-label { font-size: 11px; color: #999; margin-top: 3px; }
+.stat-label { font-size: 10.5px; color: #999; margin-top: 3px; white-space: nowrap;}
 .stat-divider {
   width: 1px; height: 36px; background: #F0F0F5;
 }
