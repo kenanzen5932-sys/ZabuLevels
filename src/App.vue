@@ -153,7 +153,7 @@ onMounted(loadData)
               <div class="info-icon">🎁</div>
               <div class="info-content">
                 <div class="info-title">EXP Nasıl Kazanılır?</div>
-                <div class="info-desc">Odada <strong>1.000 Coin</strong> harcayarak <strong>1 EXP</strong> kazan. Seviye atladıkça odadaki rozetlerin de gelişir!</div>
+                <div class="info-desc">Odada <strong>500 Coin</strong> harcayarak <strong>1 EXP</strong> kazan. Seviye atladıkça odadaki rozetlerin de gelişir!</div>
               </div>
             </div>
             <p style="font-size:13px; color:#666; margin-top: 16px; line-height: 1.5; text-align: center;">Daha fazla detay yakında buraya eklenecektir...</p>
@@ -233,7 +233,7 @@ onMounted(loadData)
           <div class="info-icon">🎁</div>
           <div class="info-content">
             <div class="info-title">EXP Nasıl Kazanılır?</div>
-            <div class="info-desc">Odada <strong>1.000 Coin</strong> harcayarak <strong>1 EXP</strong> kazan</div>
+            <div class="info-desc">Odada <strong>500 Coin</strong> harcayarak <strong>1 EXP</strong> kazan</div>
           </div>
         </div>
 
