@@ -94,6 +94,15 @@ async function loadData() {
         if (!map[r.level]) map[r.level] = []
         map[r.level].push(r)
       })
+      
+      for (const lvl in map) {
+        map[lvl].sort((a, b) => {
+          if (a.reward_type === 'coin' && b.reward_type !== 'coin') return -1;
+          if (a.reward_type !== 'coin' && b.reward_type === 'coin') return 1;
+          return 0;
+        });
+      }
+      
       rewardsByLevel.value = map
     }
 
@@ -197,7 +206,7 @@ onMounted(loadData)
                 <!-- Ikon -->
                 <div style="width: 48px; height: 48px; flex-shrink: 0; display: flex; justify-content: center; align-items: center;">
                   <template v-if="r.reward_type === 'coin'">
-                    <div style="width: 44px; height: 44px; background: #FFB800; border-radius: 50%; color: white; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 16px; box-shadow: 0 4px 8px rgba(255,184,0,0.3);">
+                    <div style="font-size: 32px; display: flex; justify-content: center; align-items: center; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">
                       💰
                     </div>
                   </template>
@@ -249,21 +258,19 @@ onMounted(loadData)
             ref="timelineItemRefs"
           >
             <div class="level-icon-wrapper" style="position: relative;">
-              <!-- 🎁 Gift Box Overlay for Rewarded Levels -->
-              <div 
-                v-if="rewardsByLevel[lvlItem.level]?.length > 0" 
-                class="gift-icon-bounce"
-                @click="openRewards(lvlItem.level)"
-              >
-                🎁
-              </div>
-              
               <img v-if="lvlItem.icon_url" :src="lvlItem.icon_url" class="range-icon-large" @error="(e) => e.target.style.display='none'" />
               <div v-else class="range-badge" :style="{ background: lvlItem.color || '#FFB800' }">
                 <span class="range-text">LV.{{ lvlItem.level }}</span>
               </div>
             </div>
             <span class="range-label-real" style="margin-top: 8px; font-size: 11px; color: #555; font-weight: 600;">Lv.{{ lvlItem.level }}</span>
+            <div 
+              v-if="rewardsByLevel[lvlItem.level]?.length > 0" 
+              class="gift-icon-bounce"
+              @click="openRewards(lvlItem.level)"
+            >
+              🎁
+            </div>
           </div>
         </div>
       </div>
@@ -386,10 +393,13 @@ body {
   padding: 24px 20px 32px; transform: translateY(100%);
   transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.1);
   box-shadow: 0 -4px 16px rgba(0,0,0,0.05);
+  max-height: 85vh;
+  display: flex; flex-direction: column;
 }
 .bottom-sheet.active { transform: translateY(0); }
 
 .sheet-header {
+  flex-shrink: 0;
   display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
 }
 .sheet-header h3 { font-size: 18px; font-weight: 800; color: #1A1A2E; }
@@ -398,7 +408,10 @@ body {
   border-radius: 50%; font-weight: bold; color: #666; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
 }
-.sheet-body { padding-bottom: 10px; }
+.sheet-body { 
+  overflow-y: auto; flex: 1; padding-bottom: 10px;
+  padding-right: 4px;
+}
 
 /* Avatar */
 .avatar-section {
@@ -537,12 +550,9 @@ body {
 
 /* Gift Bounce Animation for Timeline */
 .gift-icon-bounce {
-  position: absolute;
-  top: -24px;
-  right: -8px;
-  font-size: 20px;
+  font-size: 18px;
   cursor: pointer;
-  z-index: 10;
+  margin-top: 4px;
   animation: bounceGift 2s infinite ease-in-out;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
 }
