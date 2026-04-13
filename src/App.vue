@@ -22,24 +22,10 @@ const progressPercent = computed(() => {
   return Math.min(((current - currentLvlExp) / (nextLvlExp - currentLvlExp)) * 100, 100)
 })
 
-// Level grupları (10'ar aralık)
-const levelRanges = computed(() => {
-  if (!allLevels.value.length) return []
-  const ranges = []
-  for (let i = 0; i < 10; i++) {
-    const start = i * 10 + 1
-    const end = Math.min(start + 9, 100)
-    const levelsInRange = allLevels.value.filter(l => l.level >= start && l.level <= end)
-    const icon = levelsInRange[0]?.icon_url || null
-    const color = levelsInRange[0]?.color || '#FFB800'
-    ranges.push({ start, end, label: `${start}~${end}`, icon, color })
-  }
-  return ranges
-})
-
-const activeRangeIndex = computed(() => {
+// Level grupları (iptal edildi, artık tüm level data direkt basılıyor)
+const activeLevelIndex = computed(() => {
   const lvl = levelInfo.value?.level || 1
-  return Math.floor((lvl - 1) / 10)
+  return allLevels.value.findIndex(l => l.level === lvl)
 })
 
 // Veri çek
@@ -140,8 +126,8 @@ onMounted(loadData)
       </div>
 
       <!-- Avatar + Kullanıcı -->
-      <div class="avatar-section">
-        <div class="avatar-ring" :style="{ borderColor: getRangeColor(levelInfo?.level || 1) }">
+      <div class="avatar-section" style="padding-top: 36px; padding-bottom: 24px;">
+        <div class="avatar-ring">
           <img
             v-if="userProfile?.avatar_url"
             :src="userProfile.avatar_url"
@@ -154,26 +140,25 @@ onMounted(loadData)
             </svg>
           </div>
         </div>
-        <p class="username">{{ userProfile?.username || 'Kullanıcı' }}</p>
-        <div v-if="levelInfo?.title" class="title-badge" :style="{ color: getRangeColor(levelInfo.level || 1) }">
-          🏆 {{ levelInfo.title }}
-        </div>
+        <p class="username" style="margin-top: 16px;">{{ userProfile?.username || 'Kullanıcı' }}</p>
       </div>
 
       <!-- Level Timeline -->
-      <div class="timeline-section" v-if="levelRanges.length">
+      <div class="timeline-section" v-if="allLevels.length">
         <div class="timeline-scroll">
           <div
-            v-for="(range, idx) in levelRanges"
-            :key="idx"
+            v-for="(lvlItem, idx) in allLevels"
+            :key="lvlItem.level"
             class="timeline-item"
-            :class="{ active: idx === activeRangeIndex, past: idx < activeRangeIndex }"
+            :class="{ active: idx === activeLevelIndex, past: idx < activeLevelIndex }"
           >
-            <span class="range-label">LV({{ range.label }})</span>
-            <div class="range-badge" :style="{ background: range.color }">
-              <img v-if="range.icon" :src="range.icon" class="range-icon" @error="(e) => e.target.style.display='none'" />
-              <span class="range-text">LV.{{ idx === activeRangeIndex ? (levelInfo?.level || 1) : range.start }}</span>
+            <div class="level-icon-wrapper">
+              <img v-if="lvlItem.icon_url" :src="lvlItem.icon_url" class="range-icon-large" @error="(e) => e.target.style.display='none'" />
+              <div v-else class="range-badge" :style="{ background: lvlItem.color || '#FFB800' }">
+                <span class="range-text">LV.{{ lvlItem.level }}</span>
+              </div>
             </div>
+            <span class="range-label-real" style="margin-top: 8px; font-size: 11px; color: #555; font-weight: 600;">Lv.{{ lvlItem.level }}</span>
           </div>
         </div>
       </div>
@@ -299,15 +284,11 @@ body {
   display: flex; flex-direction: column;
   align-items: center;
   background: #fff;
-  padding: 24px 16px 20px;
 }
 .avatar-ring {
-  width: 88px; height: 88px;
+  width: 100px; height: 100px;
   border-radius: 50%;
-  border: 3px solid #6C63FF;
-  padding: 3px;
   display: flex; align-items: center; justify-content: center;
-  transition: border-color 0.3s ease;
 }
 .avatar-img {
   width: 100%; height: 100%;
@@ -321,48 +302,42 @@ body {
   display: flex; align-items: center; justify-content: center;
 }
 .username {
-  margin-top: 12px;
   font-size: 18px; font-weight: 700; color: #1A1A2E;
-}
-.title-badge {
-  margin-top: 6px;
-  font-size: 12px; font-weight: 600;
-  background: #F5F5FA;
-  padding: 4px 14px;
-  border-radius: 20px;
 }
 
 /* Timeline */
 .timeline-section {
-  margin-top: 12px;
   background: #fff;
   padding: 16px 0;
 }
 .timeline-scroll {
   display: flex; overflow-x: auto;
-  gap: 8px; padding: 0 16px;
+  gap: 12px; padding: 0 16px;
   -ms-overflow-style: none; scrollbar-width: none;
 }
 .timeline-scroll::-webkit-scrollbar { display: none; }
 .timeline-item {
   flex: 0 0 auto;
   display: flex; flex-direction: column;
-  align-items: center; gap: 6px;
+  align-items: center; justify-content: flex-end;
   opacity: 0.35;
   transform: scale(0.85);
   transition: all 0.3s ease;
+  min-width: 48px;
 }
 .timeline-item.past { opacity: 0.55; transform: scale(0.9); }
 .timeline-item.active { opacity: 1; transform: scale(1.1); }
-.range-label { font-size: 10px; color: #999; white-space: nowrap; }
+.level-icon-wrapper {
+  display: flex; align-items: center; justify-content: center;
+  height: 54px;
+}
+.range-icon-large { width: 54px; height: 54px; object-fit: contain; }
 .range-badge {
-  display: flex; align-items: center; gap: 4px;
+  display: flex; align-items: center; justify-content: center;
   padding: 4px 10px; border-radius: 14px;
   font-size: 11px; font-weight: 800; color: #fff;
   white-space: nowrap;
 }
-.range-icon { width: 14px; height: 14px; object-fit: contain; }
-.range-text { font-size: 11px; }
 
 /* Level Card */
 .level-card {
