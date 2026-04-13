@@ -548,19 +548,11 @@ body {
   width: 1px; height: 36px; background: #F0F0F5;
 }
 
-/* Gift Bounce Animation for Timeline */
+/* Gift Box for Timeline */
 .gift-icon-bounce {
   font-size: 18px;
   cursor: pointer;
-  margin-top: 4px;
-  animation: bounceGift 2s infinite ease-in-out;
+  margin-top: 8px; /* moved slightly down */
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
-}
-
-@keyframes bounceGift {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  25% { transform: translateY(-4px) rotate(5deg); }
-  50% { transform: translateY(0) rotate(0deg); }
-  75% { transform: translateY(-2px) rotate(-5deg); }
 }
 </style>
