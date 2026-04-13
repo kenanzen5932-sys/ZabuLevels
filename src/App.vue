@@ -9,6 +9,7 @@ const levelInfo = ref(null)
 const allLevels = ref([])
 const error = ref(null)
 const timelineItemRefs = ref([])
+const showInfoPopup = ref(false)
 
 // URL'den user_id al
 const userId = new URLSearchParams(window.location.search).get('user_id')
@@ -33,8 +34,8 @@ watch([activeLevelIndex, timelineItemRefs], async () => {
   await nextTick()
   if (activeLevelIndex.value >= 0 && timelineItemRefs.value[activeLevelIndex.value]) {
     timelineItemRefs.value[activeLevelIndex.value].scrollIntoView({
-      behavior: 'smooth',
-      inline: 'center',
+      behavior: 'auto',
+      inline: 'start',
       block: 'nearest'
     })
   }
@@ -131,7 +132,33 @@ onMounted(loadData)
           </svg>
         </button>
         <h1 class="title">Seviye</h1>
-        <div style="width:40px"></div>
+        <button class="info-btn" @click="showInfoPopup = true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="#1A1A2E" stroke-width="2"/>
+            <path d="M12 16v-4" stroke="#1A1A2E" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="12" cy="8" r="1.5" fill="#1A1A2E"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Popup Overlay -->
+      <div class="overlay" :class="{ active: showInfoPopup }" @click="showInfoPopup = false">
+        <div class="bottom-sheet" :class="{ active: showInfoPopup }" @click.stop>
+          <div class="sheet-header">
+            <h3>Nasıl Seviye Atlarım?</h3>
+            <button class="close-sheet" @click="showInfoPopup = false">✕</button>
+          </div>
+          <div class="sheet-body">
+            <div class="info-card" style="margin: 0; box-shadow: none; border: 1px solid #F0F0F5;">
+              <div class="info-icon">🎁</div>
+              <div class="info-content">
+                <div class="info-title">EXP Nasıl Kazanılır?</div>
+                <div class="info-desc">Odada <strong>1.000 Coin</strong> harcayarak <strong>1 EXP</strong> kazan. Seviye atladıkça odadaki rozetlerin de gelişir!</div>
+              </div>
+            </div>
+            <p style="font-size:13px; color:#666; margin-top: 16px; line-height: 1.5; text-align: center;">Daha fazla detay yakında buraya eklenecektir...</p>
+          </div>
+        </div>
       </div>
 
       <!-- Avatar + Kullanıcı -->
@@ -272,6 +299,38 @@ body {
 .title {
   font-size: 17px; font-weight: 700; color: #1A1A2E;
 }
+.info-btn {
+  background: transparent; border: none; cursor: pointer;
+  width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+}
+
+/* Info Popup / Bottom Sheet */
+.overlay {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.4); z-index: 100;
+  opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+}
+.overlay.active { opacity: 1; pointer-events: auto; }
+
+.bottom-sheet {
+  position: absolute; bottom: 0; left: 0; width: 100%;
+  background: #fff; border-radius: 24px 24px 0 0;
+  padding: 24px 20px 32px; transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+  box-shadow: 0 -4px 16px rgba(0,0,0,0.05);
+}
+.bottom-sheet.active { transform: translateY(0); }
+
+.sheet-header {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+}
+.sheet-header h3 { font-size: 18px; font-weight: 800; color: #1A1A2E; }
+.close-sheet {
+  background: #F0F0F5; border: none; width: 32px; height: 32px;
+  border-radius: 50%; font-weight: bold; color: #666; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.sheet-body { padding-bottom: 10px; }
 
 /* Avatar */
 .avatar-section {
