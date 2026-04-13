@@ -455,14 +455,23 @@ body {
   flex: 0 0 auto;
   display: flex; flex-direction: column;
   align-items: center; justify-content: flex-end;
-  opacity: 0.35;
   transform: scale(0.85); transform-origin: center bottom;
   transition: all 0.3s ease;
   min-width: 48px;
   scroll-margin-left: 20px;
 }
-.timeline-item.past { opacity: 0.55; transform: scale(0.9); }
-.timeline-item.active { opacity: 1; transform: scale(1.15); }
+.timeline-item > .level-icon-wrapper,
+.timeline-item > .range-label-real {
+  opacity: 0.35;
+  transition: all 0.3s ease;
+}
+.timeline-item.past > .level-icon-wrapper, 
+.timeline-item.past > .range-label-real { opacity: 0.55; }
+.timeline-item.active > .level-icon-wrapper,
+.timeline-item.active > .range-label-real { opacity: 1; }
+
+.timeline-item.past { transform: scale(0.9); }
+.timeline-item.active { transform: scale(1.15); }
 .level-icon-wrapper {
   display: flex; align-items: center; justify-content: center;
   height: 54px;
