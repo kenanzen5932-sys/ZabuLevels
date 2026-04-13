@@ -378,6 +378,7 @@ body {
   transform: scale(0.85); transform-origin: center bottom;
   transition: all 0.3s ease;
   min-width: 48px;
+  scroll-margin-left: 20px;
 }
 .timeline-item.past { opacity: 0.55; transform: scale(0.9); }
 .timeline-item.active { opacity: 1; transform: scale(1.15); }
