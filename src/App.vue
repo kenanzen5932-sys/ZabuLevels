@@ -100,11 +100,8 @@ onMounted(loadData)
 
 <template>
   <div class="app">
-    <!-- Loading -->
-    <div v-if="loading" class="loading-screen">
-      <div class="loading-spinner"></div>
-      <p class="loading-text">Yükleniyor...</p>
-    </div>
+    <!-- Loading (Flutter native overlay bekletiliyor, burada içi boş bırakıldı) -->
+    <div v-if="loading"></div>
 
     <!-- Error -->
     <div v-else-if="error" class="error-screen">
@@ -239,22 +236,6 @@ body {
   min-height: 100vh;
   background: #F8F8FC;
 }
-
-/* Loading */
-.loading-screen {
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  min-height: 100vh; gap: 16px;
-}
-.loading-spinner {
-  width: 36px; height: 36px;
-  border: 3px solid #eee;
-  border-top-color: #6C63FF;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-.loading-text { color: #999; font-size: 14px; }
-@keyframes spin { to { transform: rotate(360deg); } }
 
 .error-screen {
   display: flex; align-items: center; justify-content: center;
