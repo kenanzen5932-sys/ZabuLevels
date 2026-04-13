@@ -10,6 +10,9 @@ const allLevels = ref([])
 const error = ref(null)
 const timelineItemRefs = ref([])
 const showInfoPopup = ref(false)
+const showRewardsPopup = ref(false)
+const selectedRewardsLevel = ref(null)
+const rewardsByLevel = ref({})
 
 // Auth (Artık URL'den DEĞİL, Flutter Bridge'den geliyor)
 let userId = null
@@ -66,7 +69,7 @@ async function loadData() {
     }
 
     // Paralel veri çekimi
-    const [profileRes, levelRes, allLevelsRes] = await Promise.all([
+    const [profileRes, levelRes, allLevelsRes, rewardsRes] = await Promise.all([
       supabase
         .from('profiles')
         .select('username, avatar_url, wealth_level, wealth_exp')
@@ -74,6 +77,7 @@ async function loadData() {
         .single(),
       supabase.rpc('get_wealth_level_info', { p_user_id: userId }),
       supabase.from('wealth_levels').select('*').order('level'),
+      supabase.from('wealth_level_rewards').select('*, store_items(name, thumbnail_url)'),
     ])
 
     if (profileRes.error) console.error('Profil hatası:', JSON.stringify(profileRes.error))
@@ -83,6 +87,15 @@ async function loadData() {
     if (profileRes.data) userProfile.value = profileRes.data
     if (levelRes.data) levelInfo.value = levelRes.data
     if (allLevelsRes.data) allLevels.value = allLevelsRes.data
+    
+    if (rewardsRes.data) {
+      const map = {}
+      rewardsRes.data.forEach(r => {
+        if (!map[r.level]) map[r.level] = []
+        map[r.level].push(r)
+      })
+      rewardsByLevel.value = map
+    }
 
   } catch (e) {
     console.error('Veri yükleme hatası:', e)
@@ -109,6 +122,13 @@ function getRangeColor(lvl) {
   const colors = ['#8B8B8B','#4FC3F7','#66BB6A','#FFA726','#EF5350','#AB47BC','#EC407A','#FFD54F','#FF7043','#E040FB']
   const idx = Math.min(Math.floor((lvl - 1) / 10), 9)
   return colors[idx]
+}
+
+function openRewards(lvl) {
+  if (rewardsByLevel.value[lvl] && rewardsByLevel.value[lvl].length > 0) {
+    selectedRewardsLevel.value = lvl
+    showRewardsPopup.value = true
+  }
 }
 
 onMounted(loadData)
@@ -144,7 +164,7 @@ onMounted(loadData)
         </button>
       </div>
 
-      <!-- Popup Overlay -->
+      <!-- Popup Overlay (Nasıl Kazanılır) -->
       <div class="overlay" :class="{ active: showInfoPopup }" @click="showInfoPopup = false">
         <div class="bottom-sheet" :class="{ active: showInfoPopup }" @click.stop>
           <div class="sheet-header">
@@ -159,7 +179,43 @@ onMounted(loadData)
                 <div class="info-desc">Odada <strong>500 Coin</strong> harcayarak <strong>1 EXP</strong> kazan. Seviye atladıkça odadaki rozetlerin de gelişir!</div>
               </div>
             </div>
-            <p style="font-size:13px; color:#666; margin-top: 16px; line-height: 1.5; text-align: center;">Daha fazla detay yakında buraya eklenecektir...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Popup Overlay (Ödüller) -->
+      <div class="overlay" :class="{ active: showRewardsPopup }" @click="showRewardsPopup = false">
+        <div class="bottom-sheet" :class="{ active: showRewardsPopup }" @click.stop>
+          <div class="sheet-header">
+            <h3>Seviye {{ selectedRewardsLevel }} Ödülleri</h3>
+            <button class="close-sheet" @click="showRewardsPopup = false">✕</button>
+          </div>
+          <div class="sheet-body">
+            <p style="font-size: 13px; color: #666; margin-bottom: 16px; text-align: center;">Bu seviyeye ulaştığında aşağıdaki ödüller çantana (veya cüzdanına) otomatik olarak eklenir!</p>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <div v-for="r in rewardsByLevel[selectedRewardsLevel]" :key="r.id" style="display: flex; align-items: center; gap: 16px; background: #f9f9f9; border: 1px solid #eaeaea; border-radius: 12px; padding: 12px 16px;">
+                <!-- Ikon -->
+                <div style="width: 48px; height: 48px; flex-shrink: 0; display: flex; justify-content: center; align-items: center;">
+                  <template v-if="r.reward_type === 'coin'">
+                    <div style="width: 44px; height: 44px; background: #FFB800; border-radius: 50%; color: white; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 16px; box-shadow: 0 4px 8px rgba(255,184,0,0.3);">
+                      💰
+                    </div>
+                  </template>
+                  <template v-else>
+                    <img :src="r.store_items?.thumbnail_url" style="width: 100%; height: 100%; object-fit: contain;" />
+                  </template>
+                </div>
+                <!-- Detay -->
+                <div style="display: flex; flex-direction: column;">
+                  <span style="font-weight: 700; color: #1A1A2E; font-size: 15px;">
+                    {{ r.reward_type === 'coin' ? formatNumber(r.coin_amount) + ' Coin' : r.store_items?.name }}
+                  </span>
+                  <span v-if="r.reward_type === 'item'" style="color: #888; font-size: 12px; margin-top: 2px;">
+                    Kullanım Süresi: {{ r.duration_days }} Gün
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -192,7 +248,16 @@ onMounted(loadData)
             :class="{ active: idx === activeLevelIndex, past: idx < activeLevelIndex }"
             ref="timelineItemRefs"
           >
-            <div class="level-icon-wrapper">
+            <div class="level-icon-wrapper" style="position: relative;">
+              <!-- 🎁 Gift Box Overlay for Rewarded Levels -->
+              <div 
+                v-if="rewardsByLevel[lvlItem.level]?.length > 0" 
+                class="gift-icon-bounce"
+                @click="openRewards(lvlItem.level)"
+              >
+                🎁
+              </div>
+              
               <img v-if="lvlItem.icon_url" :src="lvlItem.icon_url" class="range-icon-large" @error="(e) => e.target.style.display='none'" />
               <div v-else class="range-badge" :style="{ background: lvlItem.color || '#FFB800' }">
                 <span class="range-text">LV.{{ lvlItem.level }}</span>
@@ -468,5 +533,24 @@ body {
 .stat-label { font-size: 10.5px; color: #999; margin-top: 3px; white-space: nowrap;}
 .stat-divider {
   width: 1px; height: 36px; background: #F0F0F5;
+}
+
+/* Gift Bounce Animation for Timeline */
+.gift-icon-bounce {
+  position: absolute;
+  top: -24px;
+  right: -8px;
+  font-size: 20px;
+  cursor: pointer;
+  z-index: 10;
+  animation: bounceGift 2s infinite ease-in-out;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+@keyframes bounceGift {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-4px) rotate(5deg); }
+  50% { transform: translateY(0) rotate(0deg); }
+  75% { transform: translateY(-2px) rotate(-5deg); }
 }
 </style>
