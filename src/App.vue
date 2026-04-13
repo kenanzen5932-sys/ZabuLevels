@@ -12,28 +12,6 @@ const error = ref(null)
 // URL'den user_id al
 const userId = new URLSearchParams(window.location.search).get('user_id')
 
-// Level grupları (10'ar aralık)
-const levelRanges = computed(() => {
-  if (!allLevels.value.length) return []
-  const ranges = []
-  for (let i = 0; i < 10; i++) {
-    const start = i * 10 + 1
-    const end = Math.min(start + 9, 100)
-    const label = `${start}~${end}`
-    const levelsInRange = allLevels.value.filter(l => l.level >= start && l.level <= end)
-    const icon = levelsInRange[0]?.icon_url || null
-    const color = levelsInRange[0]?.color || '#FFB800'
-    ranges.push({ start, end, label, icon, color })
-  }
-  return ranges
-})
-
-// Aktif aralık (kullanıcının seviyesine göre)
-const activeRangeIndex = computed(() => {
-  const lvl = levelInfo.value?.level || 1
-  return Math.floor((lvl - 1) / 10)
-})
-
 // Progress hesapla
 const progressPercent = computed(() => {
   if (!levelInfo.value) return 0
@@ -44,31 +22,61 @@ const progressPercent = computed(() => {
   return Math.min(((current - currentLvlExp) / (nextLvlExp - currentLvlExp)) * 100, 100)
 })
 
+// Level grupları (10'ar aralık)
+const levelRanges = computed(() => {
+  if (!allLevels.value.length) return []
+  const ranges = []
+  for (let i = 0; i < 10; i++) {
+    const start = i * 10 + 1
+    const end = Math.min(start + 9, 100)
+    const levelsInRange = allLevels.value.filter(l => l.level >= start && l.level <= end)
+    const icon = levelsInRange[0]?.icon_url || null
+    const color = levelsInRange[0]?.color || '#FFB800'
+    ranges.push({ start, end, label: `${start}~${end}`, icon, color })
+  }
+  return ranges
+})
+
+const activeRangeIndex = computed(() => {
+  const lvl = levelInfo.value?.level || 1
+  return Math.floor((lvl - 1) / 10)
+})
+
 // Veri çek
 async function loadData() {
   if (!userId) {
-    error.value = 'Kullanıcı bulunamadı'
+    error.value = 'Kullanıcı ID bulunamadı'
     loading.value = false
     return
   }
 
   try {
-    // Flutter'dan token alma (JS Bridge)
-    let token = null
+    // Flutter JS Bridge'den token al
     if (window.flutter_inappwebview) {
-      const auth = await window.flutter_inappwebview.callHandler('getSupabaseAuth')
-      if (auth?.token) {
-        token = auth.token
-        await supabase.auth.setSession({ access_token: token, refresh_token: '' })
+      try {
+        const auth = await window.flutter_inappwebview.callHandler('getSupabaseAuth')
+        if (auth?.token) {
+          await supabase.auth.setSession({ access_token: auth.token, refresh_token: auth.token })
+        }
+      } catch (e) {
+        console.warn('Token alınamadı, anonymous devam:', e)
       }
     }
 
     // Paralel veri çekimi
     const [profileRes, levelRes, allLevelsRes] = await Promise.all([
-      supabase.from('profiles').select('username, avatar_url, wealth_level, wealth_exp').eq('id', userId).single(),
+      supabase
+        .from('profiles')
+        .select('username, avatar_url, wealth_level, wealth_exp')
+        .eq('id', userId)
+        .single(),
       supabase.rpc('get_wealth_level_info', { p_user_id: userId }),
-      supabase.rpc('get_all_wealth_levels'),
+      supabase.from('wealth_levels').select('*').order('level'),
     ])
+
+    if (profileRes.error) console.error('Profil hatası:', profileRes.error)
+    if (levelRes.error) console.error('Level hatası:', levelRes.error)
+    if (allLevelsRes.error) console.error('AllLevels hatası:', allLevelsRes.error)
 
     if (profileRes.data) userProfile.value = profileRes.data
     if (levelRes.data) levelInfo.value = levelRes.data
@@ -76,7 +84,7 @@ async function loadData() {
 
   } catch (e) {
     console.error('Veri yükleme hatası:', e)
-    error.value = 'Veriler yüklenemedi'
+    error.value = 'Veriler yüklenemedi: ' + e.message
   }
 
   loading.value = false
@@ -85,12 +93,20 @@ async function loadData() {
 function goBack() {
   if (window.flutter_inappwebview) {
     window.flutter_inappwebview.callHandler('H5Message', 'close_h5')
+  } else {
+    window.history.back()
   }
 }
 
 function formatNumber(n) {
-  if (!n) return '0'
-  return n.toLocaleString('tr-TR')
+  if (!n && n !== 0) return '0'
+  return Number(n).toLocaleString('tr-TR')
+}
+
+function getRangeColor(lvl) {
+  const colors = ['#8B8B8B','#4FC3F7','#66BB6A','#FFA726','#EF5350','#AB47BC','#EC407A','#FFD54F','#FF7043','#E040FB']
+  const idx = Math.min(Math.floor((lvl - 1) / 10), 9)
+  return colors[idx]
 }
 
 onMounted(loadData)
@@ -101,35 +117,31 @@ onMounted(loadData)
     <!-- Loading -->
     <div v-if="loading" class="loading-screen">
       <div class="loading-spinner"></div>
-      <p>Yükleniyor...</p>
+      <p class="loading-text">Yükleniyor...</p>
     </div>
 
     <!-- Error -->
     <div v-else-if="error" class="error-screen">
-      <p>{{ error }}</p>
+      <p>😕 {{ error }}</p>
     </div>
 
     <!-- Main Content -->
     <div v-else class="content">
+
       <!-- Header -->
       <div class="header">
         <button class="back-btn" @click="goBack">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M15 18L9 12L15 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M15 18L9 12L15 6" stroke="#1A1A2E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
         <h1 class="title">Seviye</h1>
-        <div class="info-btn">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="10" stroke="white" stroke-width="1.5"/>
-            <path d="M12 16V12M12 8H12.01" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-          </svg>
-        </div>
+        <div style="width:40px"></div>
       </div>
 
-      <!-- Avatar -->
+      <!-- Avatar + Kullanıcı -->
       <div class="avatar-section">
-        <div class="avatar-ring">
+        <div class="avatar-ring" :style="{ borderColor: getRangeColor(levelInfo?.level || 1) }">
           <img
             v-if="userProfile?.avatar_url"
             :src="userProfile.avatar_url"
@@ -137,27 +149,29 @@ onMounted(loadData)
             class="avatar-img"
           />
           <div v-else class="avatar-placeholder">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="white">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="#ccc">
               <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
             </svg>
           </div>
         </div>
         <p class="username">{{ userProfile?.username || 'Kullanıcı' }}</p>
+        <div v-if="levelInfo?.title" class="title-badge" :style="{ color: getRangeColor(levelInfo.level || 1) }">
+          🏆 {{ levelInfo.title }}
+        </div>
       </div>
 
-      <!-- Level Timeline (Yatay kaydırılabilir) -->
-      <div class="timeline-section">
-        <div class="timeline-curve"></div>
-        <div class="timeline-scroll" ref="timelineRef">
+      <!-- Level Timeline -->
+      <div class="timeline-section" v-if="levelRanges.length">
+        <div class="timeline-scroll">
           <div
             v-for="(range, idx) in levelRanges"
             :key="idx"
             class="timeline-item"
-            :class="{ active: idx === activeRangeIndex, past: idx < activeRangeIndex, future: idx > activeRangeIndex }"
+            :class="{ active: idx === activeRangeIndex, past: idx < activeRangeIndex }"
           >
             <span class="range-label">LV({{ range.label }})</span>
             <div class="range-badge" :style="{ background: range.color }">
-              <img v-if="range.icon" :src="range.icon" class="range-icon" />
+              <img v-if="range.icon" :src="range.icon" class="range-icon" @error="(e) => e.target.style.display='none'" />
               <span class="range-text">LV.{{ idx === activeRangeIndex ? (levelInfo?.level || 1) : range.start }}</span>
             </div>
           </div>
@@ -166,59 +180,59 @@ onMounted(loadData)
 
       <!-- Level Info Card -->
       <div class="level-card">
-        <div class="level-card-inner">
-          <!-- Level Number + EXP -->
-          <div class="level-top">
-            <div class="level-number">
-              <span class="lv-label">Lv.</span>
-              <span class="lv-value">{{ levelInfo?.level || 1 }}</span>
-            </div>
-            <div class="exp-counter">
-              {{ formatNumber(levelInfo?.exp) }}/{{ formatNumber(levelInfo?.next_level_exp) }}
-            </div>
+        <!-- Level Number + EXP -->
+        <div class="level-top">
+          <div class="level-number">
+            <span class="lv-label">Lv.</span>
+            <span class="lv-value" :style="{ color: getRangeColor(levelInfo?.level || 1) }">{{ levelInfo?.level || 1 }}</span>
           </div>
-
-          <!-- Remaining EXP -->
-          <div class="remaining">
-            <span class="remaining-value">{{ formatNumber(levelInfo?.remaining_exp) }}</span>
-            ile seviye atla
+          <div class="exp-counter">
+            {{ formatNumber(levelInfo?.exp) }} / {{ formatNumber(levelInfo?.next_level_exp) }} EXP
           </div>
+        </div>
 
-          <!-- Progress Bar -->
-          <div class="progress-bar-container">
-            <div class="progress-bar-bg">
-              <div
-                class="progress-bar-fill"
-                :style="{ width: progressPercent + '%' }"
-              ></div>
-            </div>
-            <div
-              class="progress-indicator"
-              :style="{ left: Math.min(progressPercent, 95) + '%' }"
-            ></div>
+        <!-- Remaining -->
+        <div class="remaining">
+          <span class="remaining-value">{{ formatNumber(levelInfo?.remaining_exp) }} EXP</span> ile seviye atlarsın
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar-bg">
+          <div
+            class="progress-bar-fill"
+            :style="{ width: progressPercent + '%', background: `linear-gradient(90deg, ${getRangeColor(levelInfo?.level || 1)}, ${getRangeColor(levelInfo?.level || 1)}aa)` }"
+          ></div>
+        </div>
+      </div>
+
+      <!-- EXP Kazanma Bilgisi -->
+      <div class="info-section">
+        <div class="info-card">
+          <div class="info-icon">🎁</div>
+          <div class="info-content">
+            <div class="info-title">EXP Nasıl Kazanılır?</div>
+            <div class="info-desc">Odada <strong>1.000 Coin</strong> harcayarak <strong>1 EXP</strong> kazan</div>
+          </div>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat-box">
+            <div class="stat-value">{{ formatNumber(levelInfo?.exp) }}</div>
+            <div class="stat-label">Toplam EXP</div>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-box">
+            <div class="stat-value">{{ levelInfo?.level || 1 }}</div>
+            <div class="stat-label">Mevcut Seviye</div>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-box">
+            <div class="stat-value">{{ levelInfo?.remaining_exp ? formatNumber(levelInfo.remaining_exp) : '—' }}</div>
+            <div class="stat-label">Kalan EXP</div>
           </div>
         </div>
       </div>
 
-      <!-- Level Title -->
-      <div class="level-title-section" v-if="levelInfo?.title">
-        <div class="title-badge">
-          <span>🏆</span>
-          <span>{{ levelInfo.title }}</span>
-        </div>
-      </div>
-
-      <!-- EXP info -->
-      <div class="exp-info">
-        <div class="exp-info-item">
-          <span class="exp-info-label">EXP Kazanma</span>
-          <span class="exp-info-value">1.000 Coin = 1 EXP</span>
-        </div>
-        <div class="exp-info-item">
-          <span class="exp-info-label">Toplam EXP</span>
-          <span class="exp-info-value">{{ formatNumber(levelInfo?.exp) }}</span>
-        </div>
-      </div>
     </div>
   </div>
 </template>
@@ -226,78 +240,74 @@ onMounted(loadData)
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
   font-family: 'Inter', sans-serif;
-  background: #0A0A1A;
-  color: #fff;
+  background: #F8F8FC;
+  color: #1A1A2E;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
 
 .app {
   min-height: 100vh;
-  background: linear-gradient(180deg, #0A0A1A 0%, #0D1025 40%, #0A0A1A 100%);
+  background: #F8F8FC;
 }
 
-/* ─── Loading ─── */
+/* Loading */
 .loading-screen {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  gap: 16px;
-  color: #888;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  min-height: 100vh; gap: 16px;
 }
 .loading-spinner {
-  width: 32px; height: 32px;
-  border: 3px solid #333;
-  border-top-color: #FFB800;
+  width: 36px; height: 36px;
+  border: 3px solid #eee;
+  border-top-color: #6C63FF;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
+.loading-text { color: #999; font-size: 14px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .error-screen {
   display: flex; align-items: center; justify-content: center;
-  min-height: 100vh; color: #ff4444;
+  min-height: 100vh; color: #ff4444; text-align: center; padding: 32px;
 }
 
-/* ─── Header ─── */
+/* Header */
 .header {
-  display: flex;
-  align-items: center;
+  display: flex; align-items: center;
   justify-content: space-between;
-  padding: 56px 16px 16px;
+  padding: 52px 16px 12px;
+  background: #fff;
+  border-bottom: 1px solid #F0F0F5;
 }
-.back-btn, .info-btn {
-  background: none; border: none;
-  cursor: pointer; padding: 8px;
-  opacity: 0.8;
+.back-btn {
+  background: #F5F5FA; border: none;
+  cursor: pointer; padding: 8px; border-radius: 50%;
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
 }
 .title {
-  font-size: 18px; font-weight: 700;
+  font-size: 17px; font-weight: 700; color: #1A1A2E;
 }
 
-/* ─── Avatar ─── */
+/* Avatar */
 .avatar-section {
-  display: flex;
-  flex-direction: column;
+  display: flex; flex-direction: column;
   align-items: center;
-  padding: 20px 0;
+  background: #fff;
+  padding: 24px 16px 20px;
 }
 .avatar-ring {
-  width: 90px; height: 90px;
+  width: 88px; height: 88px;
   border-radius: 50%;
-  border: 3px solid rgba(255, 184, 0, 0.5);
+  border: 3px solid #6C63FF;
   padding: 3px;
   display: flex; align-items: center; justify-content: center;
+  transition: border-color 0.3s ease;
 }
 .avatar-img {
   width: 100%; height: 100%;
@@ -307,210 +317,120 @@ body {
 .avatar-placeholder {
   width: 100%; height: 100%;
   border-radius: 50%;
-  background: #222;
+  background: #F0F0F5;
   display: flex; align-items: center; justify-content: center;
 }
 .username {
   margin-top: 12px;
-  font-size: 18px; font-weight: 700;
+  font-size: 18px; font-weight: 700; color: #1A1A2E;
+}
+.title-badge {
+  margin-top: 6px;
+  font-size: 12px; font-weight: 600;
+  background: #F5F5FA;
+  padding: 4px 14px;
+  border-radius: 20px;
 }
 
-/* ─── Timeline ─── */
+/* Timeline */
 .timeline-section {
-  position: relative;
-  padding: 0 0 20px;
-}
-.timeline-curve {
-  position: absolute;
-  top: 50%;
-  left: 10%; right: 10%;
-  height: 2px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 50%;
-  transform: translateY(-50%);
+  margin-top: 12px;
+  background: #fff;
+  padding: 16px 0;
 }
 .timeline-scroll {
-  display: flex;
-  overflow-x: auto;
-  gap: 8px;
-  padding: 16px;
-  scroll-snap-type: x mandatory;
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+  display: flex; overflow-x: auto;
+  gap: 8px; padding: 0 16px;
+  -ms-overflow-style: none; scrollbar-width: none;
 }
 .timeline-scroll::-webkit-scrollbar { display: none; }
-
 .timeline-item {
   flex: 0 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  scroll-snap-align: center;
-  opacity: 0.4;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 6px;
+  opacity: 0.35;
   transform: scale(0.85);
   transition: all 0.3s ease;
 }
-.timeline-item.active {
-  opacity: 1;
-  transform: scale(1.1);
-}
-.timeline-item.past {
-  opacity: 0.6;
-  transform: scale(0.9);
-}
-.range-label {
-  font-size: 11px;
-  color: #888;
-  white-space: nowrap;
-}
+.timeline-item.past { opacity: 0.55; transform: scale(0.9); }
+.timeline-item.active { opacity: 1; transform: scale(1.1); }
+.range-label { font-size: 10px; color: #999; white-space: nowrap; }
 .range-badge {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  border-radius: 14px;
-  font-size: 11px;
-  font-weight: 800;
-  color: #fff;
+  display: flex; align-items: center; gap: 4px;
+  padding: 4px 10px; border-radius: 14px;
+  font-size: 11px; font-weight: 800; color: #fff;
   white-space: nowrap;
 }
-.range-icon {
-  width: 16px; height: 16px;
-  object-fit: contain;
-}
-.range-text {
-  font-size: 11px;
-}
+.range-icon { width: 14px; height: 14px; object-fit: contain; }
+.range-text { font-size: 11px; }
 
-/* ─── Level Card ─── */
+/* Level Card */
 .level-card {
-  padding: 0 16px;
-  margin-top: 8px;
-}
-.level-card-inner {
-  background: linear-gradient(135deg, rgba(30,30,50,0.9), rgba(20,20,35,0.95));
-  border: 1px solid rgba(255,184,0,0.15);
+  margin: 12px 16px;
+  background: #fff;
   border-radius: 16px;
   padding: 20px;
-  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
 }
 .level-top {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  margin-bottom: 8px;
+  display: flex; align-items: flex-end;
+  justify-content: space-between; margin-bottom: 8px;
 }
-.level-number {
-  display: flex;
-  align-items: baseline;
-}
-.lv-label {
-  font-size: 20px;
-  font-weight: 600;
-  color: #888;
-  margin-right: 4px;
-}
+.level-number { display: flex; align-items: baseline; }
+.lv-label { font-size: 18px; font-weight: 500; color: #999; margin-right: 2px; }
 .lv-value {
-  font-size: 48px;
-  font-weight: 900;
-  line-height: 1;
-  background: linear-gradient(135deg, #FFB800, #FF8C00);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  font-size: 56px; font-weight: 900; line-height: 1;
+  color: #6C63FF;
+  transition: color 0.3s ease;
 }
 .exp-counter {
-  font-size: 13px;
-  color: #888;
-  background: rgba(255,255,255,0.06);
-  padding: 4px 12px;
-  border-radius: 20px;
-  margin-bottom: 8px;
+  font-size: 12px; color: #999;
+  background: #F5F5FA; padding: 4px 10px;
+  border-radius: 20px; margin-bottom: 4px;
 }
+.remaining { font-size: 13px; color: #888; margin-bottom: 14px; }
+.remaining-value { font-weight: 700; color: #1A1A2E; }
 
-.remaining {
-  font-size: 14px;
-  color: #888;
-  margin-bottom: 16px;
-}
-.remaining-value {
-  color: #FFB800;
-  font-weight: 700;
-}
-
-/* ─── Progress Bar ─── */
-.progress-bar-container {
-  position: relative;
-  height: 20px;
-}
 .progress-bar-bg {
-  width: 100%;
-  height: 8px;
-  background: rgba(255,255,255,0.08);
-  border-radius: 4px;
-  overflow: hidden;
-  margin-top: 6px;
+  width: 100%; height: 10px;
+  background: #F0F0F5; border-radius: 5px; overflow: hidden;
 }
 .progress-bar-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #FFB800, #FF6B00);
-  border-radius: 4px;
+  height: 100%; border-radius: 5px;
+  background: linear-gradient(90deg, #6C63FF, #9C8FFF);
   transition: width 0.8s ease;
 }
-.progress-indicator {
-  position: absolute;
-  top: 0;
-  width: 16px; height: 16px;
-  background: #fff;
-  border: 2px solid #FFB800;
-  border-radius: 50%;
-  transform: translateX(-50%);
-  transition: left 0.8s ease;
-  box-shadow: 0 0 8px rgba(255,184,0,0.4);
-}
 
-/* ─── Level Title ─── */
-.level-title-section {
-  display: flex;
-  justify-content: center;
-  padding: 20px 16px 0;
+/* Info Section */
+.info-section {
+  margin: 0 16px 32px;
+  display: flex; flex-direction: column; gap: 10px;
 }
-.title-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 20px;
-  background: rgba(255,184,0,0.1);
-  border: 1px solid rgba(255,184,0,0.2);
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #FFB800;
+.info-card {
+  background: #fff; border-radius: 14px;
+  padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  display: flex; align-items: center; gap: 12px;
 }
+.info-icon { font-size: 28px; }
+.info-title { font-size: 13px; font-weight: 700; color: #1A1A2E; margin-bottom: 3px; }
+.info-desc { font-size: 12px; color: #888; line-height: 1.5; }
+.info-desc strong { color: #6C63FF; }
 
-/* ─── EXP Info ─── */
-.exp-info {
-  padding: 24px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.stats-row {
+  background: #fff; border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  display: flex; align-items: center;
 }
-.exp-info-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  background: rgba(255,255,255,0.03);
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.05);
+.stat-box {
+  flex: 1; padding: 16px 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
 }
-.exp-info-label {
-  font-size: 13px;
-  color: #888;
+.stat-value {
+  font-size: 18px; font-weight: 800; color: #1A1A2E;
 }
-.exp-info-value {
-  font-size: 13px;
-  color: #FFB800;
-  font-weight: 600;
+.stat-label { font-size: 11px; color: #999; margin-top: 3px; }
+.stat-divider {
+  width: 1px; height: 36px; background: #F0F0F5;
 }
 </style>
