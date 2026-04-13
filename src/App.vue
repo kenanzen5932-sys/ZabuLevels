@@ -11,8 +11,8 @@ const error = ref(null)
 const timelineItemRefs = ref([])
 const showInfoPopup = ref(false)
 
-// URL'den user_id al
-const userId = new URLSearchParams(window.location.search).get('user_id')
+// Auth (Artık URL'den DEĞİL, Flutter Bridge'den geliyor)
+let userId = null
 
 // Progress hesapla
 const progressPercent = computed(() => {
@@ -43,23 +43,26 @@ watch([activeLevelIndex, timelineItemRefs], async () => {
 
 // Veri çek
 async function loadData() {
-  if (!userId) {
-    error.value = 'Kullanıcı ID bulunamadı'
+  // Güvenlik Kilidi: Sadece Flutter InAppWebView içinden çalışabilir
+  if (!window.flutter_inappwebview) {
+    error.value = '🔒 Güvenlik İhlali: Lütfen bu etkinliği/sayfayı Zabu Uygulaması içinden açın.'
     loading.value = false
     return
   }
 
   try {
-    // Flutter JS Bridge'den token al
-    if (window.flutter_inappwebview) {
-      try {
-        const auth = await window.flutter_inappwebview.callHandler('getSupabaseAuth')
-        if (auth?.token) {
-          await supabase.auth.setSession({ access_token: auth.token, refresh_token: auth.token })
-        }
-      } catch (e) {
-        console.warn('Token alınamadı, anonymous devam:', e)
+    // Flutter JS Bridge'den güvenli token ve UUID al
+    const auth = await window.flutter_inappwebview.callHandler('getSupabaseAuth')
+    
+    if (auth && auth.uuid) {
+      userId = auth.uuid
+      if (auth.token) {
+        await supabase.auth.setSession({ access_token: auth.token, refresh_token: auth.token })
       }
+    } else {
+      error.value = 'Oturum bilgileri alınamadı. Lütfen uygulamaya tekrar giriş yapın.'
+      loading.value = false
+      return
     }
 
     // Paralel veri çekimi
