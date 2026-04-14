@@ -302,33 +302,7 @@ onMounted(loadData)
         </div>
       </div>
 
-      <!-- EXP Kazanma Bilgisi -->
-      <div class="info-section">
-        <div class="info-card">
-          <div class="info-icon">🎁</div>
-          <div class="info-content">
-            <div class="info-title">EXP Nasıl Kazanılır?</div>
-            <div class="info-desc">Odada <strong>500 Coin</strong> harcayarak <strong>1 EXP</strong> kazan</div>
-          </div>
-        </div>
-
-        <div class="stats-row">
-          <div class="stat-box">
-            <div class="stat-value">{{ formatNumber(levelInfo?.exp) }}</div>
-            <div class="stat-label">Toplam EXP</div>
-          </div>
-          <div class="stat-divider"></div>
-          <div class="stat-box">
-            <div class="stat-value">{{ levelInfo?.level || 1 }}</div>
-            <div class="stat-label">Mevcut Seviye</div>
-          </div>
-          <div class="stat-divider"></div>
-          <div class="stat-box">
-            <div class="stat-value">{{ levelInfo?.remaining_exp ? formatNumber(levelInfo.remaining_exp) : '—' }}</div>
-            <div class="stat-label">Kalan EXP</div>
-          </div>
-        </div>
-      </div>
+      <!-- EXP bölümü kaldırıldı, sadece bar kullanılıyor -->
 
     </div>
   </div>
