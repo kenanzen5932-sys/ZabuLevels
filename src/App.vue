@@ -230,7 +230,7 @@ onMounted(loadData)
       </div>
 
       <!-- Avatar + Kullanıcı -->
-      <div class="avatar-section" style="padding-top: 36px; padding-bottom: 24px;">
+      <div class="avatar-section" style="padding-top: 36px; padding-bottom: 4px;">
         <div class="avatar-ring">
           <img
             v-if="userProfile?.avatar_url"
@@ -416,7 +416,7 @@ body {
 /* Timeline */
 .timeline-section {
   background: #fff;
-  padding: 16px 0;
+  padding: 0;
   overflow: hidden;
 }
 .timeline-scroll {
