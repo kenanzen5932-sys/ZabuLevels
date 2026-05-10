@@ -281,7 +281,7 @@ onMounted(loadData)
         <div class="level-top">
           <div class="level-number">
             <span class="lv-label">Lv.</span>
-            <span class="lv-value" :style="{ color: getRangeColor(levelInfo?.level || 1) }">{{ levelInfo?.level || 1 }}</span>
+            <span class="lv-value">{{ levelInfo?.level || 1 }}</span>
           </div>
           <div class="exp-counter">
             {{ formatNumber(levelInfo?.exp) }} / {{ formatNumber(levelInfo?.next_level_exp) }} EXP
@@ -474,11 +474,11 @@ body {
 /* Level Card */
 .level-card {
   margin: 12px 16px;
-  background: linear-gradient(135deg, rgba(218,165,32,0.35), rgba(184,134,11,0.25));
+  background: linear-gradient(135deg, #DAA520, #B8860B);
   border-radius: 16px;
   padding: 20px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.2);
-  border: 1px solid rgba(255,215,0,0.3);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  border: 1px solid #FFD700;
 }
 .level-top {
   display: flex; align-items: flex-end;
