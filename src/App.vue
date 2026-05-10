@@ -200,9 +200,9 @@ onMounted(loadData)
             <button class="close-sheet" @click="showRewardsPopup = false">✕</button>
           </div>
           <div class="sheet-body">
-            <p style="font-size: 13px; color: #666; margin-bottom: 16px; text-align: center;">Bu seviyeye ulaştığında aşağıdaki ödüller çantana (veya cüzdanına) otomatik olarak eklenir!</p>
+            <p style="font-size: 13px; color: rgba(255,248,231,0.6); margin-bottom: 16px; text-align: center;">Bu seviyeye ulaştığında aşağıdaki ödüller çantana (veya cüzdanına) otomatik olarak eklenir!</p>
             <div style="display: flex; flex-direction: column; gap: 12px;">
-              <div v-for="r in rewardsByLevel[selectedRewardsLevel]" :key="r.id" style="display: flex; align-items: center; gap: 16px; background: #f9f9f9; border: 1px solid #eaeaea; border-radius: 12px; padding: 12px 16px;">
+              <div v-for="r in rewardsByLevel[selectedRewardsLevel]" :key="r.id" style="display: flex; align-items: center; gap: 16px; background: rgba(255,215,0,0.05); border: 1px solid rgba(255,215,0,0.15); border-radius: 12px; padding: 12px 16px;">
                 <!-- Ikon -->
                 <div style="width: 48px; height: 48px; flex-shrink: 0; display: flex; justify-content: center; align-items: center;">
                   <template v-if="r.reward_type === 'coin'">
@@ -216,10 +216,10 @@ onMounted(loadData)
                 </div>
                 <!-- Detay -->
                 <div style="display: flex; flex-direction: column;">
-                  <span style="font-weight: 700; color: #1A1A2E; font-size: 15px;">
+                  <span style="font-weight: 700; color: #FFD700; font-size: 15px;">
                     {{ r.reward_type === 'coin' ? formatNumber(r.coin_amount) + ' Coin' : r.store_items?.name }}
                   </span>
-                  <span v-if="r.reward_type === 'item'" style="color: #888; font-size: 12px; margin-top: 2px;">
+                  <span v-if="r.reward_type === 'item'" style="color: rgba(255,248,231,0.5); font-size: 12px; margin-top: 2px;">
                     Kullanım Süresi: {{ r.duration_days }} Gün
                   </span>
                 </div>
@@ -315,8 +315,8 @@ onMounted(loadData)
 
 body {
   font-family: 'Inter', sans-serif;
-  background: #F8F8FC;
-  color: #1A1A2E;
+  background: #0A0A0F;
+  color: #FFF8E7;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   margin: 0;
@@ -330,7 +330,7 @@ body {
 
 .error-screen {
   display: flex; align-items: center; justify-content: center;
-  min-height: 100vh; color: #ff4444; text-align: center; padding: 32px;
+  min-height: 100vh; color: #FFD700; text-align: center; padding: 32px;
 }
 
 /* Header */
@@ -342,18 +342,23 @@ body {
   border-bottom: none;
 }
 .back-btn {
-  background: #F5F5FA; border: none;
+  background: rgba(0,0,0,0.3); border: none;
   cursor: pointer; padding: 8px; border-radius: 50%;
   width: 40px; height: 40px;
   display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(8px);
 }
+.back-btn svg path { stroke: #FFD700; }
 .title {
-  font-size: 17px; font-weight: 700; color: #1A1A2E;
+  font-size: 17px; font-weight: 700; color: #FFD700;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.5);
 }
 .info-btn {
   background: transparent; border: none; cursor: pointer;
   width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
 }
+.info-btn svg circle, .info-btn svg path { stroke: #FFD700; }
+.info-btn svg circle[fill] { fill: #FFD700; }
 
 /* Info Popup / Bottom Sheet */
 .overlay {
@@ -365,12 +370,13 @@ body {
 
 .bottom-sheet {
   position: absolute; bottom: 0; left: 0; width: 100%;
-  background: #fff; border-radius: 24px 24px 0 0;
+  background: #1A1A2E; border-radius: 24px 24px 0 0;
   padding: 24px 20px 32px; transform: translateY(100%);
   transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.1);
-  box-shadow: 0 -4px 16px rgba(0,0,0,0.05);
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
   max-height: 85vh;
   display: flex; flex-direction: column;
+  border-top: 1px solid rgba(255,215,0,0.2);
 }
 .bottom-sheet.active { transform: translateY(0); }
 
@@ -378,10 +384,10 @@ body {
   flex-shrink: 0;
   display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
 }
-.sheet-header h3 { font-size: 18px; font-weight: 800; color: #1A1A2E; }
+.sheet-header h3 { font-size: 18px; font-weight: 800; color: #FFD700; }
 .close-sheet {
-  background: #F0F0F5; border: none; width: 32px; height: 32px;
-  border-radius: 50%; font-weight: bold; color: #666; cursor: pointer;
+  background: rgba(255,215,0,0.1); border: none; width: 32px; height: 32px;
+  border-radius: 50%; font-weight: bold; color: #FFD700; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
 }
 .sheet-body { 
@@ -399,6 +405,8 @@ body {
   width: 100px; height: 100px;
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 20px rgba(218,165,32,0.4);
+  border: 2px solid rgba(255,215,0,0.3);
 }
 .avatar-img {
   width: 100%; height: 100%;
@@ -412,7 +420,8 @@ body {
   display: flex; align-items: center; justify-content: center;
 }
 .username {
-  font-size: 18px; font-weight: 700; color: #1A1A2E;
+  font-size: 18px; font-weight: 700; color: #fff;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.6);
 }
 
 /* Timeline */
@@ -438,13 +447,14 @@ body {
 }
 .timeline-item > .level-icon-wrapper,
 .timeline-item > .range-label-real {
-  opacity: 0.35;
+  opacity: 0.3;
   transition: all 0.3s ease;
 }
 .timeline-item.past > .level-icon-wrapper, 
-.timeline-item.past > .range-label-real { opacity: 0.55; }
+.timeline-item.past > .range-label-real { opacity: 0.6; }
 .timeline-item.active > .level-icon-wrapper,
 .timeline-item.active > .range-label-real { opacity: 1; }
+.range-label-real { color: rgba(255,248,231,0.8) !important; }
 
 .timeline-item.past { transform: scale(0.9); }
 .timeline-item.active { transform: scale(1.15); }
@@ -463,38 +473,43 @@ body {
 /* Level Card */
 .level-card {
   margin: 12px 16px;
-  background: #fff;
+  background: rgba(0,0,0,0.45);
   border-radius: 16px;
   padding: 20px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,215,0,0.15);
 }
 .level-top {
   display: flex; align-items: flex-end;
   justify-content: space-between; margin-bottom: 8px;
 }
 .level-number { display: flex; align-items: baseline; }
-.lv-label { font-size: 18px; font-weight: 500; color: #999; margin-right: 2px; }
+.lv-label { font-size: 18px; font-weight: 500; color: rgba(255,215,0,0.6); margin-right: 2px; }
 .lv-value {
   font-size: 56px; font-weight: 900; line-height: 1;
-  color: #6C63FF;
+  color: #FFD700;
   transition: color 0.3s ease;
+  text-shadow: 0 2px 12px rgba(218,165,32,0.5);
 }
 .exp-counter {
-  font-size: 12px; color: #999;
-  background: #F5F5FA; padding: 4px 10px;
+  font-size: 12px; color: #FFD700;
+  background: rgba(255,215,0,0.1); padding: 4px 10px;
   border-radius: 20px; margin-bottom: 4px;
+  border: 1px solid rgba(255,215,0,0.2);
 }
-.remaining { font-size: 13px; color: #888; margin-bottom: 14px; }
-.remaining-value { font-weight: 700; color: #1A1A2E; }
+.remaining { font-size: 13px; color: rgba(255,248,231,0.6); margin-bottom: 14px; }
+.remaining-value { font-weight: 700; color: #FFD700; }
 
 .progress-bar-bg {
   width: 100%; height: 10px;
-  background: #F0F0F5; border-radius: 5px; overflow: hidden;
+  background: rgba(255,255,255,0.1); border-radius: 5px; overflow: hidden;
 }
 .progress-bar-fill {
   height: 100%; border-radius: 5px;
-  background: linear-gradient(90deg, #6C63FF, #9C8FFF);
+  background: linear-gradient(90deg, #B8860B, #DAA520, #FFD700);
   transition: width 0.8s ease;
+  box-shadow: 0 0 8px rgba(255,215,0,0.4);
 }
 
 /* Info Section */
@@ -503,14 +518,16 @@ body {
   display: flex; flex-direction: column; gap: 10px;
 }
 .info-card {
-  background: #fff; border-radius: 14px;
-  padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  background: rgba(0,0,0,0.4); border-radius: 14px;
+  padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
   display: flex; align-items: center; gap: 12px;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,215,0,0.15);
 }
 .info-icon { font-size: 28px; }
-.info-title { font-size: 13px; font-weight: 700; color: #1A1A2E; margin-bottom: 3px; }
-.info-desc { font-size: 12px; color: #888; line-height: 1.5; }
-.info-desc strong { color: #6C63FF; }
+.info-title { font-size: 13px; font-weight: 700; color: #FFD700; margin-bottom: 3px; }
+.info-desc { font-size: 12px; color: rgba(255,248,231,0.7); line-height: 1.5; }
+.info-desc strong { color: #FFD700; }
 
 .stats-row {
   background: #fff; border-radius: 14px;
