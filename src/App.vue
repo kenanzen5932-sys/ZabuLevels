@@ -474,11 +474,11 @@ body {
 /* Level Card */
 .level-card {
   margin: 12px 16px;
-  background: rgba(255,255,255,0.25);
+  background: linear-gradient(135deg, rgba(218,165,32,0.35), rgba(184,134,11,0.25));
   border-radius: 16px;
   padding: 20px;
-  box-shadow: none;
-  border: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,215,0,0.3);
 }
 .level-top {
   display: flex; align-items: flex-end;
@@ -499,7 +499,7 @@ body {
   border: 1px solid rgba(0,0,0,0.15);
   font-weight: 600;
 }
-.remaining { font-size: 13px; color: #333; margin-bottom: 14px; }
+.remaining { font-size: 13px; color: #111; margin-bottom: 14px; }
 .remaining-value { font-weight: 700; color: #111; }
 
 .progress-bar-bg {
