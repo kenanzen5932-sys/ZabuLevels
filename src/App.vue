@@ -319,11 +319,13 @@ body {
   color: #1A1A2E;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  margin: 0;
 }
 
 .app {
   min-height: 100vh;
-  background: #F8F8FC;
+  background: url('/bglevelhome.png') no-repeat center top / cover;
+  background-attachment: fixed;
 }
 
 .error-screen {
@@ -336,8 +338,8 @@ body {
   display: flex; align-items: center;
   justify-content: space-between;
   padding: 52px 16px 12px;
-  background: #fff;
-  border-bottom: 1px solid #F0F0F5;
+  background: transparent;
+  border-bottom: none;
 }
 .back-btn {
   background: #F5F5FA; border: none;
@@ -391,7 +393,7 @@ body {
 .avatar-section {
   display: flex; flex-direction: column;
   align-items: center;
-  background: #fff;
+  background: transparent;
 }
 .avatar-ring {
   width: 100px; height: 100px;
@@ -415,7 +417,7 @@ body {
 
 /* Timeline */
 .timeline-section {
-  background: #fff;
+  background: transparent;
   padding: 0;
   overflow: hidden;
 }
