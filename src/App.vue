@@ -454,7 +454,7 @@ body {
 .timeline-item.past > .range-label-real { opacity: 0.6; }
 .timeline-item.active > .level-icon-wrapper,
 .timeline-item.active > .range-label-real { opacity: 1; }
-.range-label-real { color: rgba(255,248,231,0.8) !important; }
+.range-label-real { color: #FFD700 !important; }
 
 .timeline-item.past { transform: scale(0.9); }
 .timeline-item.active { transform: scale(1.15); }
@@ -466,7 +466,7 @@ body {
 .range-badge {
   display: flex; align-items: center; justify-content: center;
   padding: 4px 10px; border-radius: 14px;
-  font-size: 11px; font-weight: 800; color: #fff;
+  font-size: 11px; font-weight: 800; color: #FFD700;
   white-space: nowrap;
 }
 
@@ -476,9 +476,8 @@ body {
   background: rgba(0,0,0,0.45);
   border-radius: 16px;
   padding: 20px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,215,0,0.15);
+  box-shadow: none;
+  border: 1px solid rgba(255,215,0,0.25);
 }
 .level-top {
   display: flex; align-items: flex-end;
