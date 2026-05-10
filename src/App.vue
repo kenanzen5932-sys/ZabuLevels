@@ -420,8 +420,8 @@ body {
   display: flex; align-items: center; justify-content: center;
 }
 .username {
-  font-size: 18px; font-weight: 700; color: #fff;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+  font-size: 18px; font-weight: 700; color: #111;
+  text-shadow: 0 1px 4px rgba(255,215,0,0.4);
 }
 
 /* Timeline */
@@ -454,7 +454,7 @@ body {
 .timeline-item.past > .range-label-real { opacity: 0.6; }
 .timeline-item.active > .level-icon-wrapper,
 .timeline-item.active > .range-label-real { opacity: 1; }
-.range-label-real { color: #fff !important; text-shadow: 0 1px 4px rgba(0,0,0,0.7); }
+.range-label-real { color: #111 !important; text-shadow: 0 1px 3px rgba(255,215,0,0.4); font-weight: 700 !important; }
 
 .timeline-item.past { transform: scale(0.9); }
 .timeline-item.active { transform: scale(1.15); }
@@ -466,44 +466,45 @@ body {
 .range-badge {
   display: flex; align-items: center; justify-content: center;
   padding: 4px 10px; border-radius: 14px;
-  font-size: 11px; font-weight: 800; color: #fff;
+  font-size: 11px; font-weight: 800; color: #111;
   white-space: nowrap;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+  text-shadow: 0 1px 2px rgba(255,215,0,0.3);
 }
 
 /* Level Card */
 .level-card {
   margin: 12px 16px;
-  background: rgba(0,0,0,0.45);
+  background: rgba(255,255,255,0.25);
   border-radius: 16px;
   padding: 20px;
   box-shadow: none;
-  border: 1px solid rgba(255,215,0,0.25);
+  border: 1px solid rgba(0,0,0,0.08);
 }
 .level-top {
   display: flex; align-items: flex-end;
   justify-content: space-between; margin-bottom: 8px;
 }
 .level-number { display: flex; align-items: baseline; }
-.lv-label { font-size: 18px; font-weight: 500; color: rgba(255,255,255,0.7); margin-right: 2px; }
+.lv-label { font-size: 18px; font-weight: 600; color: #111; margin-right: 2px; }
 .lv-value {
   font-size: 56px; font-weight: 900; line-height: 1;
-  color: #FFFFFF;
+  color: #111;
   transition: color 0.3s ease;
-  text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+  text-shadow: 0 2px 8px rgba(255,215,0,0.3);
 }
 .exp-counter {
-  font-size: 12px; color: #fff;
-  background: rgba(0,0,0,0.3); padding: 4px 10px;
+  font-size: 12px; color: #111;
+  background: rgba(255,215,0,0.25); padding: 4px 10px;
   border-radius: 20px; margin-bottom: 4px;
-  border: 1px solid rgba(255,255,255,0.15);
+  border: 1px solid rgba(0,0,0,0.15);
+  font-weight: 600;
 }
-.remaining { font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 14px; }
-.remaining-value { font-weight: 700; color: #fff; }
+.remaining { font-size: 13px; color: #333; margin-bottom: 14px; }
+.remaining-value { font-weight: 700; color: #111; }
 
 .progress-bar-bg {
   width: 100%; height: 10px;
-  background: rgba(255,255,255,0.1); border-radius: 5px; overflow: hidden;
+  background: rgba(0,0,0,0.15); border-radius: 5px; overflow: hidden;
 }
 .progress-bar-fill {
   height: 100%; border-radius: 5px;
