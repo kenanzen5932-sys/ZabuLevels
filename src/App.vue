@@ -233,16 +233,10 @@ onMounted(loadData)
       <div class="avatar-section" style="padding-top: 36px; padding-bottom: 4px;">
         <div class="avatar-ring">
           <img
-            v-if="userProfile?.avatar_url"
-            :src="userProfile.avatar_url"
+            :src="userProfile?.avatar_url || '/fallback-avatar.png'"
             alt="Avatar"
             class="avatar-img"
           />
-          <div v-else class="avatar-placeholder">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="#ccc">
-              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-            </svg>
-          </div>
         </div>
         <p class="username" style="margin-top: 16px;">{{ userProfile?.username || 'Kullanıcı' }}</p>
       </div>
