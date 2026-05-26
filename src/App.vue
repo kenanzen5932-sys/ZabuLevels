@@ -309,7 +309,7 @@ onMounted(loadData)
 
 body {
   font-family: 'Inter', sans-serif;
-  background: #FDF6EC;
+  background: transparent;
   color: #6B5B3A;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
@@ -318,7 +318,7 @@ body {
 
 .app {
   min-height: 100vh;
-  background: #FDF6EC;
+  background: url('/bglevelhome2.webp') center center / cover no-repeat fixed;
 }
 
 .error-screen {
@@ -331,7 +331,7 @@ body {
   display: flex; align-items: center;
   justify-content: space-between;
   padding: 52px 16px 12px;
-  background: #FDF6EC;
+  background: transparent;
   border-bottom: none;
 }
 .back-btn {
@@ -389,7 +389,7 @@ body {
 .avatar-section {
   display: flex; flex-direction: column;
   align-items: center;
-  background: #FDF6EC;
+  background: transparent;
 }
 .avatar-ring {
   width: 100px; height: 100px;
@@ -415,7 +415,7 @@ body {
 
 /* Timeline */
 .timeline-section {
-  background: #FDF6EC;
+  background: transparent;
   padding: 0;
   overflow: hidden;
 }
